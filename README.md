@@ -7,6 +7,10 @@ This Ansible-Playbook should spin up a quick OCP-Cluster within Minutes in my ow
 - VM or WSL with Linux RHEL, Fedora, Rocky or CentOS
   - Tested with **Rocky Linux 9.4 (Blue Onyx)** on WSL-2.0
   - Ansible
+- DNS-Entry for:
+  - api.ipi.home.local
+  - api-int.ipi.home.local
+  - *.apps.ipi.home.local
 
 ```bash
 # Ansible --version
