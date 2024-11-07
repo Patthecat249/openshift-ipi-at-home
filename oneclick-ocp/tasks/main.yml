@@ -69,26 +69,26 @@
 - name: OpenShift oc-Client herunterladen
   ansible.builtin.get_url:
     url: "{{ oc_client_url }}"
-    dest: "{{ dir_downloads }}/openshift-client-{{openshift_version}}-linux.tar.gz"
+    dest: "{{ dir_downloads }}/openshift-client-{{ openshift_version }}-linux.tar.gz"
     mode: '0644'
     validate_certs: true
 
 - name: OpenShift Installer herunterladen
   ansible.builtin.get_url:
     url: "{{ installer_url }}"
-    dest: "{{ dir_downloads }}/openshift-install-{{openshift_version}}-linux.tar.gz"
+    dest: "{{ dir_downloads }}/openshift-install-{{ openshift_version }}-linux.tar.gz"
     mode: '0644'
     validate_certs: true
 
 - name: Entpacke den OpenShift oc-Client
   ansible.builtin.unarchive:
-    src: "{{ dir_downloads }}/openshift-client-{{openshift_version}}-linux.tar.gz"
+    src: "{{ dir_downloads }}/openshift-client-{{ openshift_version }}-linux.tar.gz"
     dest: "/usr/local/bin/"
     remote_src: true
 
 - name: Entpacke den OpenShift Installer
   ansible.builtin.unarchive:
-    src: "{{ dir_downloads }}/openshift-install-{{openshift_version}}-linux.tar.gz"
+    src: "{{ dir_downloads }}/openshift-install-{{ openshift_version }}-linux.tar.gz"
     dest: "/usr/local/bin/"
     remote_src: true
 
