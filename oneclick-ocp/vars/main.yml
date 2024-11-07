@@ -1,0 +1,36 @@
+---
+# vars file for oneclick-ocp
+# Red Hat Pull-Secret
+
+
+# OpenShift
+openshift_base_domain: "home.local"
+openshift_clustername: "ipi"
+openshift_version: "4.16.18"
+coreos_version: "4.16.3"
+openshift_api_vip: "10.0.249.242"
+openshift_ingress_vip: "10.0.249.241"
+
+# OpenShift-Clients
+base_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp"
+oc_client_url: "{{ base_url }}/{{ openshift_version }}/openshift-client-linux-{{ openshift_version }}.tar.gz"
+installer_url: "{{ base_url }}/{{ openshift_version }}/openshift-install-linux-{{ openshift_version }}.tar.gz"
+
+# vCenter
+vcenter_hostname: "vcenter.home.local"
+vcenter_datacenter: "dc-home"
+vcenter_cluster: "cluster-home"
+vcenter_datastore: "esx-datengrab"
+vcenter_rp: "rp-home"
+vcenter_network: "pg-home"
+vcenter_folder: "openshift"
+# vcenter_username wird aus vault-datei eingelesen
+# vcenter_password wird aus vault-datei eingelesen
+
+# Directories (always ends with slash)
+dir_root: "/root/ocp/"
+dir_downloads: "{{ dir_root }}downloads/"
+dir_ocp_installations: "{{ dir_root }}openshift-installations/"
+dir_certs: "{{ dir_root }}certs/"
+dir_entpackt: "{{ dir_certs }}certs/lin/"
+dir_ocp_sshkeys: "{{ dir_ocp_installations }}sshkeys/"

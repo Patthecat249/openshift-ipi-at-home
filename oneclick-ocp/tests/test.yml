@@ -1,0 +1,10 @@
+# install_openshift.yml
+---
+- name: OpenShift Installation - One Click
+  hosts: localhost
+  vars_files:
+    - "/root/git/openshift-ipi-at-home/oneclick-ocp/vars/vcenter_credentials.yaml"
+  vars:
+    path_to_pull_secret: "/root/git/openshift-ipi-at-home/oneclick-ocp/vars/pull-secret"
+  roles:
+    - role: oneclick-ocp

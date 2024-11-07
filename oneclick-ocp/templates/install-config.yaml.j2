@@ -1,0 +1,47 @@
+apiVersion: v1
+baseDomain: {{ openshift_base_domain }}
+compute: 
+- architecture: amd64
+  name:  worker
+  platform: {}
+  replicas: 3
+controlPlane: 
+  architecture: amd64
+  name: master
+  platform: {}
+  replicas: 3
+metadata:
+  creationTimestamp: null
+  name: {{ openshift_clustername }} 
+platform:
+  vsphere: 
+    apiVIPs:
+      - {{ openshift_api_vip }}
+    failureDomains: 
+    - name: df-patrick
+      region: region-patrick
+      server: {{ vcenter_hostname }}
+      topology:
+        computeCluster: "/{{ vcenter_datacenter }}/host/{{ vcenter_cluster }}"
+        datacenter: {{ vcenter_datacenter }}
+        datastore: "/{{ vcenter_datacenter }}/datastore/{{ vcenter_datastore }}" 
+        networks:
+        - {{ vcenter_network }}
+        resourcePool: "/{{ vcenter_datacenter }}/host/{{ vcenter_cluster }}/Resources/{{ vcenter_rp }}" 
+        folder: "/{{ vcenter_datacenter }}/vm/{{ vcenter_folder }}"
+        tagIDs: 
+        - "urn:vmomi:InventoryServiceTag:208e713c-cae3-4b7f-918e-4051ca7d1f97:GLOBAL"  
+      zone: zone-patrick
+    ingressVIPs:
+    - {{ openshift_ingress_vip }}
+    vcenters:
+    - datacenters:
+      - {{ vcenter_datacenter }}
+      password: "{{ vcenter_password }}"
+      port: 443
+      server: {{ vcenter_hostname }}
+      user: "{{ vcenter_username }}"
+    diskType: thin 
+fips: false
+pullSecret: '{{ lookup('file', path_to_pull_secret) }}'
+sshKey: '{{ lookup('file', dir_ocp_sshkeys + openshift_clustername + '.pub') }}'

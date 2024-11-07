@@ -1,0 +1,118 @@
+---
+# tasks file for oneclick-ocp
+
+# Install Software
+
+# Create folder
+- name: Alle Verzeichnisse anlegen
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ dir_root }}"
+    - "{{ dir_downloads }}"
+    - "{{ dir_certs }}"
+    - "{{ dir_ocp_installations }}"
+    - "{{ dir_ocp_sshkeys }}"
+    - "{{ dir_ocp_installations }}{{ openshift_clustername }}"
+
+# Erstelle SSH-Keys
+- name: SSH-Schlüsselpaar erstellen
+  ansible.builtin.command:
+    cmd: "ssh-keygen -t rsa -b 4096 -q -N '' -f  {{ dir_ocp_sshkeys }}{{ openshift_clustername }}"
+  args:
+    creates: "{{ dir_ocp_sshkeys }}{{ openshift_clustername }}"
+
+- name: "Zeige öffentlichen SSH-Schlüssel an"
+  ansible.builtin.shell:
+    cmd: "cat {{ dir_ocp_sshkeys }}{{ openshift_clustername }}.pub"
+  register: ssh_public_key
+  changed_when: false
+
+- name: Ausgabe des öffentlichen Schlüssels
+  ansible.builtin.debug:
+    msg: "{{ ssh_public_key.stdout }}"
+
+# Download -Zertifate vom vCenter
+- name: "VCenter-Zertifikate herunterladen"
+  ansible.builtin.get_url:
+    url: "https://{{ vcenter_hostname }}/certs/download.zip"
+    dest: "{{ dir_downloads }}download.zip"
+    mode: '0600'
+    validate_certs: false
+  register: download_result
+
+# Zertifikate entpacken
+- name: Zertifikate entpacken
+  ansible.builtin.unarchive:
+    src: "{{ dir_downloads }}download.zip"
+    dest: "{{ dir_certs }}"
+    remote_src: true
+  when: download_result is succeeded
+
+# Copy file to truststore root-ca
+- name: Kopiere alle Dateien aus dem Zertifikatsverzeichnis
+  ansible.builtin.copy:
+    src: "/root/ocp/certs/certs/lin/"
+    dest: "/etc/pki/ca-trust/source/anchors/"
+    owner: root
+    group: root
+    mode: '0644'
+    remote_src: true
+
+# Aktualisiere den truststore
+- name: "CA-Trust aktualisieren"
+  ansible.builtin.command: update-ca-trust
+
+# Download Clients and extract the client
+- name: OpenShift oc-Client herunterladen
+  ansible.builtin.get_url:
+    url: "{{ oc_client_url }}"
+    dest: "{{ dir_downloads }}/openshift-client-{{openshift_version}}-linux.tar.gz"
+    mode: '0644'
+    validate_certs: true
+
+- name: OpenShift Installer herunterladen
+  ansible.builtin.get_url:
+    url: "{{ installer_url }}"
+    dest: "{{ dir_downloads }}/openshift-install-{{openshift_version}}-linux.tar.gz"
+    mode: '0644'
+    validate_certs: true
+
+- name: Entpacke den OpenShift oc-Client
+  ansible.builtin.unarchive:
+    src: "{{ dir_downloads }}/openshift-client-{{openshift_version}}-linux.tar.gz"
+    dest: "/usr/local/bin/"
+    remote_src: true
+
+- name: Entpacke den OpenShift Installer
+  ansible.builtin.unarchive:
+    src: "{{ dir_downloads }}/openshift-install-{{openshift_version}}-linux.tar.gz"
+    dest: "/usr/local/bin/"
+    remote_src: true
+
+- name: Setze Berechtigungen auf ausführbar für oc und openshift-install
+  ansible.builtin.file:
+    path: "/usr/local/bin/{{ item }}"
+    mode: '0755'
+  loop:
+    - "oc"
+    - "kubectl"
+    - "openshift-install"
+
+# Template install-config.yaml
+- name: "Generiere install-config.yaml aus Template"
+  ansible.builtin.template:
+    src: install-config.yaml.j2
+    dest: "{{ dir_ocp_installations }}{{ openshift_clustername }}/install-config.yaml"
+    mode: '0600'
+
+# Template install-config.yaml
+- name: "Backup install-config.yaml aus Template"
+  ansible.builtin.template:
+    src: install-config.yaml.j2
+    dest: "{{ dir_ocp_installations }}install-config.yaml"
+    mode: '0600'
+
+# Create OpenShift-Cluster
