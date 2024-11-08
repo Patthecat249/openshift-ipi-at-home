@@ -3,18 +3,28 @@ baseDomain: {{ openshift_base_domain }}
 compute: 
 - architecture: amd64
   name:  worker
-  platform: {}
+  platform: 
+    vsphere:
+      cpus: 8
+      memoryMB: 65536
+      osDisk: 
+        diskSizeGB: 200
   replicas: 3
 controlPlane: 
   architecture: amd64
   name: master
-  platform: {}
+  platform: 
+    vsphere:
+      cpus: 8
+      memoryMB: 16384
+      osDisk: 
+        diskSizeGB: 120
   replicas: 3
 metadata:
   creationTimestamp: null
   name: {{ openshift_clustername }} 
 platform:
-  vsphere: 
+  vsphere:
     apiVIPs:
       - {{ openshift_api_vip }}
     failureDomains: 
@@ -30,7 +40,7 @@ platform:
         resourcePool: "/{{ vcenter_datacenter }}/host/{{ vcenter_cluster }}/Resources/{{ vcenter_rp }}" 
         folder: "/{{ vcenter_datacenter }}/vm/{{ vcenter_folder }}"
         tagIDs: 
-        - "urn:vmomi:InventoryServiceTag:208e713c-cae3-4b7f-918e-4051ca7d1f97:GLOBAL"  
+        - "urn:vmomi:InventoryServiceTag:9a060922-f444-451d-b62c-af33b54b5d02:GLOBAL"
       zone: zone-patrick
     ingressVIPs:
     - {{ openshift_ingress_vip }}

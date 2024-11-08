@@ -1,0 +1,131 @@
+# Optimierungsvorschläge für Hochverfügbarkeit und Stabilität:
+# 1. Verfügbarkeit: Konfiguration so angepasst, dass immer mindestens zwei Instanzen aktiv sind und nur eine ausfallen darf.
+# 2. Replikation und Konsistenz: minSyncReplicas auf 2 gesetzt, um die Anforderung von mindestens zwei aktiven Instanzen zu gewährleisten.
+# 3. PodAntiAffinity: Erzwingt die Verteilung auf drei verschiedene Nodes für optimale Hochverfügbarkeit.
+# 4. Failover und Switchover: Optimierte Delays für kontrollierte Umschaltungen bei Ausfällen.
+# 5. Für den PostgreSQL-Cluster wird der Operator: "CloudNativePG" benötigt.
+# apiVersion: postgresql.cnpg.io/v1
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: postgres-ns
+  labels:
+    app.kubernetes.io/instance: postgres-ns.p3
+spec:
+  logLevel: info
+  startDelay: 3600
+  stopDelay: 1800
+  smartShutdownTimeout: 180
+  imagePullSecrets:
+    - name: instana-registry
+  resources:
+    requests:
+      memory: "2Gi" # Mindestanforderung für Arbeitsspeicher
+      cpu: "1"      # Mindestanforderung für CPU
+    limits:
+      memory: "4Gi" # Maximale Zuweisung für Arbeitsspeicher
+      cpu: "2"      # Maximale Zuweisung für CPU
+  imageName: 'ghcr.io/cloudnative-pg/postgresql:15.6'
+  enableSuperuserAccess: false
+  monitoring:
+    customQueriesConfigMap:
+      - key: queries
+        name: cnpg-default-monitoring
+    disableDefaultQueries: false
+    enablePodMonitor: false
+  affinity:
+    podAntiAffinity:
+      # PodAntiAffinity erzwingt die Verteilung von Pods auf drei unterschiedliche Nodes
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/instance
+                operator: In
+                values:
+                  - postgres-ns.p3
+          topologyKey: "kubernetes.io/hostname"
+
+    nodeAffinity:
+      # NodeAffinity stellt sicher, dass Pods nur auf Nodes mit dem angegebenen Label bereitgestellt werden
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: cluster.ocs.openshift.io/openshift-storage
+                operator: Exists
+
+  minSyncReplicas: 2  # Mindestens zwei synchrone Replikate, um Ausfallsicherheit bei Wartungsarbeiten sicherzustellen
+  maxSyncReplicas: 2  # Auf maximal zwei synchrone Replikate begrenzt
+  postgresGID: 26
+  replicationSlots:
+    highAvailability:
+      enabled: true
+      slotPrefix: _cnpg_
+    updateInterval: 30
+  primaryUpdateMethod: restart
+  bootstrap:
+    initdb:
+      database: instanaadmin
+      encoding: UTF8
+      localeCType: C
+      localeCollate: C
+      owner: instanaadmin
+      secret:
+        name: instanaadmin
+  failoverDelay: 10    # Failover-Verzögerung für kontrolliertes Failover bei Fehlern
+  switchoverDelay: 600 # Switchover-Verzögerung für schnellen Wechsel zwischen Primär- und Sekundärinstanz
+  imagePullPolicy: IfNotPresent
+  postgresql:
+    parameters:
+      log_truncate_on_rotation: 'false'
+      archive_mode: 'on'
+      log_filename: postgres
+      auto_explain.log_min_duration: 10s
+      pg_stat_statements.track: all
+      archive_timeout: 5min
+      max_replication_slots: '32'
+      # log_rotation_size: '100MB' # Beschränkung der Loggröße zur Vermeidung von Speicherüberlauf
+      shared_preload_libraries: ''
+      logging_collector: 'on'
+      wal_receiver_timeout: 5s
+      log_directory: /controller/log
+      log_destination: csvlog
+      wal_sender_timeout: 5s
+      max_worker_processes: '32'
+      max_parallel_workers: '32'
+      # log_rotation_age: '1d' # Tägliche Rotation der Logs
+      shared_buffers: 512MB # Erhöhung des shared_buffers für mehr Speicheroptimierung
+      shared_memory_type: mmap
+      dynamic_shared_memory_type: posix
+      wal_keep_size: 512MB
+    pg_hba:
+      - local     all          all                            trust
+      - host      all          all          0.0.0.0/0         md5
+      - local     replication  standby                        trust
+      - hostssl   replication  standby      all               md5
+      - hostnossl all          all          all               reject
+      - hostssl   all          all          all               md5
+    syncReplicaElectionConstraint:
+      enabled: false
+  superuserSecret:
+    name: instanaadmin
+  postgresUID: 26
+  storage:
+    resizeInUseVolumes: true
+    size: 85Gi
+    storageClass: ocs-storagecluster-cephfs # Verwendung der definierten StorageClass für alle Instanzen
+  primaryUpdateStrategy: unsupervised
+  instances: 3  # Drei Instanzen, um die Verteilung auf drei Nodes sicherzustellen
+  managed:
+    roles:
+      - superuser: true
+        login: true
+        passwordSecret:
+          name: instanaadmin
+        name: instanaadmin
+        replication: true
+        createrole: true
+        createdb: true
+        inherit: true
+        connectionLimit: -1
+        ensure: present

@@ -1,6 +1,3 @@
-# install_openshift.yml
-
----
 - name: OpenShift Installation - One Click
   hosts: localhost
   vars_files:

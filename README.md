@@ -4,6 +4,7 @@ This Ansible-Playbook should spin up a quick OCP-Cluster within Minutes in my ow
 # Prerequisites
 - vSphere 8.0.x
 - vCenter 8.0.x
+- Tag (openshift) und Kategorie (openshift) im vCenter (mit GOVC die UUID herausfinden "govc tags.info openshift")
 - VM or WSL with Linux RHEL, Fedora, Rocky or CentOS
   - Tested with **Rocky Linux 9.4 (Blue Onyx)** on WSL-2.0
   - Ansible
@@ -42,4 +43,9 @@ ansible-vault create $MYPATH/git/openshift-ipi-at-home/oneclick-ocp/vars/pull-se
 ansible-playbook install_openshift.yml --vault-password-file password.txt
 
 
+```
+# Approve CSR
+```bash
+# Approve CSR
+oc adm certificate approve $(oc get csr | grep -i pending | awk '{print $1}')
 ```

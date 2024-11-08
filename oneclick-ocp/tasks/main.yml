@@ -25,7 +25,7 @@
     creates: "{{ dir_ocp_sshkeys }}{{ openshift_clustername }}"
 
 - name: "Zeige öffentlichen SSH-Schlüssel an"
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: "cat {{ dir_ocp_sshkeys }}{{ openshift_clustername }}.pub"
   register: ssh_public_key
   changed_when: false
@@ -64,6 +64,7 @@
 # Aktualisiere den truststore
 - name: "CA-Trust aktualisieren"
   ansible.builtin.command: update-ca-trust
+  changed_when: false
 
 # Download Clients and extract the client
 - name: OpenShift oc-Client herunterladen
