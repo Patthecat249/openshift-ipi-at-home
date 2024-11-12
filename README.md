@@ -33,49 +33,77 @@ ansible [core 2.14.14]
 
 # Prepare OpenShift-Installation Environment
 This create a folder-structure and prepares the install-config.yaml. After this step, you can do the openshift-cluster creation.
+
+## Clone the Github-Repo
 ```bash
 # git clone
 MYPATH=$PWD
 mkdir -p $MYPATH/git && cd $MYPATH/git && git clone https://github.com/Patthecat249/openshift-ipi-at-home.git
+```
 
+## Create a ansible-vault with your vcenter-credentials
+This file is needed to connect to your vcenter. Remember your password. You will paste it in a file in a few steps.
+```bash
 # Create a vcenter credentials file
 ansible-vault create $MYPATH/git/openshift-ipi-at-home/oneclick-ocp/vars/vcenter_credentials.yaml
 vcenter_username: "<vcenter-username>"
 vcenter_password: "<vcenter-password>"
+```
 
-# Create Red Hat pull-secret file
+## Create Red Hat pull-secret file
+This file contains your Red Hat pull-secret. Please Download from and paste it into the file:
+<https://console.redhat.com/openshift/downloads>
+```bash
 ansible-vault create $MYPATH/git/openshift-ipi-at-home/oneclick-ocp/vars/pull-secret
 # Paste your Red Hat pull-secret here
+```
 
-# Create a password-file for your ansible-vault password
+## Create a password-file for your ansible-vault password
+This file contains your ansible-vault password to run the ansible-playbook without asking for vault-password
+```bash
 echo "Test1234" > $MYPATH/password.txt
+```
 
-# Run this playbook
+## Run this playbook to create your install-config.yaml for your OpenShift-Installation
+You can choose one of the parameters to prepare your install-config file.
+
+### Install with Defaults from vars/main.yaml
+```bash
 # ansible-playbook 01-playbook.yaml --ask-vault-pass
 ansible-playbook $MYPATH/git/openshift-ipi-at-home/01-playbook.yaml --vault-password-file $MYPATH/password.txt
-
-# Customize Clustername
+```
+### Customize Clustername
+```bash
 ansible-playbook $MYPATH/git/openshift-ipi-at-home/01-playbook.yaml --vault-password-file $MYPATH/password.txt -e "openshift_clustername=ipi"
+```
 
-# Customize Clustername and OpenShift-Version
+### Customize Clustername and OpenShift-Version
+```bash
 ansible-playbook $MYPATH/git/openshift-ipi-at-home/01-playbook.yaml --vault-password-file $MYPATH/password.txt -e "openshift_clustername=patrick" -e "openshift_version=4.16.20"
+```
 
-# Customize Clustername, OpenShift-Version and Worker-Node Sizing and API+Inress-VIP
+### Customize Clustername, OpenShift-Version and Worker-Node Sizing and API+Inress-VIP
+```bash
 ansible-playbook $MYPATH/git/openshift-ipi-at-home/01-playbook.yaml --vault-password-file $MYPATH/password.txt -e "openshift_clustername=patrick" -e "openshift_version=4.16.20" -e "worker_node_count=4" -e "worker_cpu=8" -e "worker_memory=16384" -e "worker_disksize=200" -e "openshift_api_vip=10.0.249.245" -e "openshift_ingress_vip=10.0.249.246"
 ```
+
 # Install OpenShift
 Now it's time install your OpenShift-Cluster!!!
 
-```bash
-# openshift-install create cluster --dir /root/ocp/openshift-installations/<openshift-clustername>/
+`openshift-install create cluster --dir /root/ocp/openshift-installations/<openshift-clustername>/`
 
-# For example
+## Install the Cluster ipi.home.local
+```bash
 openshift-install create cluster --dir /root/ocp/openshift-installations/ipi/
+```
+## Install the Cluster patrick.home.local
+```bash
 openshift-install create cluster --dir /root/ocp/openshift-installations/patrick/
-openshift-install create cluster --dir /root/ocp/openshift-installations/patrick/ --log-level debug
 ```
 
-# Approve CSR
+# Troubleshooting - Section
+## Approve CSR
+Sometimes the OpenShift-Installation Routine does not approve the Certificate-Signing-Requests for the worker-nodes.
 ```bash
 # Approve CSR
 oc adm certificate approve $(oc get csr | grep -i pending | awk '{print $1}')
