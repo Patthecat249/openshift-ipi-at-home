@@ -11,6 +11,17 @@ coreos_version: "4.16.3"
 openshift_api_vip: "10.0.249.242"
 openshift_ingress_vip: "10.0.249.241"
 
+# Master-Nodes
+master_cpu: "8"
+master_memory: "16384"
+master_disksize: "120"
+
+# Worker-Nodes
+worker_node_count: 3
+worker_cpu: 8
+worker_memory: 65536
+worker_disksize: 200
+
 # OpenShift-Clients
 base_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp"
 oc_client_url: "{{ base_url }}/{{ openshift_version }}/openshift-client-linux-{{ openshift_version }}.tar.gz"

@@ -66,20 +66,36 @@
   ansible.builtin.command: update-ca-trust
   changed_when: false
 
-# Download Clients and extract the client
+# Check if the OpenShift client file already exists
+- name: Prüfe, ob der OpenShift oc-Client schon vorhanden ist
+  ansible.builtin.stat:
+    path: "{{ dir_downloads }}/openshift-client-{{ openshift_version }}-linux.tar.gz"
+  register: oc_client_file
+
+# Download Clients and extract the client if not already present
 - name: OpenShift oc-Client herunterladen
   ansible.builtin.get_url:
     url: "{{ oc_client_url }}"
     dest: "{{ dir_downloads }}/openshift-client-{{ openshift_version }}-linux.tar.gz"
     mode: '0644'
     validate_certs: true
+  when: not oc_client_file.stat.exists
 
+
+# Check if the OpenShift Installer file already exists
+- name: Prüfe, ob der OpenShift Installer schon vorhanden ist
+  ansible.builtin.stat:
+    path: "{{ dir_downloads }}/openshift-install-{{ openshift_version }}-linux.tar.gz"
+  register: installer_file
+
+# Download OpenShift Installer if not already present
 - name: OpenShift Installer herunterladen
   ansible.builtin.get_url:
     url: "{{ installer_url }}"
     dest: "{{ dir_downloads }}/openshift-install-{{ openshift_version }}-linux.tar.gz"
     mode: '0644'
     validate_certs: true
+  when: not installer_file.stat.exists
 
 - name: Entpacke den OpenShift oc-Client
   ansible.builtin.unarchive:
@@ -113,7 +129,7 @@
 - name: "Backup install-config.yaml aus Template"
   ansible.builtin.template:
     src: install-config.yaml.j2
-    dest: "{{ dir_ocp_installations }}install-config.yaml"
+    dest: "{{ dir_ocp_installations }}install-config-{{ openshift_clustername }}.yaml"
     mode: '0600'
 
 # Create OpenShift-Cluster

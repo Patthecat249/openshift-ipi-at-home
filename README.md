@@ -26,7 +26,7 @@ ansible [core 2.14.14]
   libyaml = True
 ```
 
-# Install OpenShift
+# Prepare OpenShift-Installation Environment
 ```bash
 # git clone
 MYPATH=$PWD
@@ -40,10 +40,28 @@ ansible-vault create $MYPATH/git/openshift-ipi-at-home/oneclick-ocp/vars/pull-se
 
 # Run this playbook
 # ansible-playbook 01-playbook.yaml --ask-vault-pass
-ansible-playbook install_openshift.yml --vault-password-file password.txt
+ansible-playbook 01-playbook.yaml --vault-password-file password.txt
 
+# Customize Clustername
+ansible-playbook 01-playbook.yaml --vault-password-file password.txt -e "openshift_clustername=ipi"
 
+# Customize Clustername and OpenShift-Version
+ansible-playbook 01-playbook.yaml --vault-password-file password.txt -e "openshift_clustername=patrick" -e "openshift_version=4.16.20"
+
+# Customize Clustername, OpenShift-Version and Worker-Node Sizing and API+Inress-VIP
+ansible-playbook 01-playbook.yaml --vault-password-file password.txt -e "openshift_clustername=patrick" -e "openshift_version=4.16.20" -e "worker_node_count=4" -e "worker_cpu=8" -e "worker_memory=16384" -e "worker_disksize=200" -e "openshift_api_vip=10.0.249.245" -e "openshift_ingress_vip=10.0.249.246"
 ```
+# Install OpenShift
+Now it's time install your OpenShift-Cluster!!!
+
+```bash
+# openshift-install create cluster --dir /root/ocp/openshift-installations/<openshift-clustername>/
+
+# For example
+openshift-install create cluster --dir /root/ocp/openshift-installations/ipi/
+openshift-install create cluster --dir /root/ocp/openshift-installations/patrick/
+```
+
 # Approve CSR
 ```bash
 # Approve CSR

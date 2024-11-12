@@ -5,20 +5,20 @@ compute:
   name:  worker
   platform: 
     vsphere:
-      cpus: 8
-      memoryMB: 65536
+      cpus: {{ worker_cpu }}
+      memoryMB: {{ worker_memory }}
       osDisk: 
-        diskSizeGB: 200
-  replicas: 3
+        diskSizeGB: {{ worker_disksize }}
+  replicas: {{ worker_node_count }}
 controlPlane: 
   architecture: amd64
   name: master
   platform: 
     vsphere:
-      cpus: 8
-      memoryMB: 16384
+      cpus: {{ master_cpu }}
+      memoryMB: {{ master_memory }}
       osDisk: 
-        diskSizeGB: 120
+        diskSizeGB: {{ master_disksize }}
   replicas: 3
 metadata:
   creationTimestamp: null
