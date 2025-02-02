@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+      "adamhartford.vscode-base64",
+      "redhat.vscode-yaml",
+      "eamodio.gitlens"
+    ]
+}
