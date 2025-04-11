@@ -9,14 +9,14 @@ This Ansible-Playbook should spin up a quick OCP-Cluster within Minutes in my ow
   - Tested with **Rocky Linux 9.4 (Blue Onyx)** on WSL-2.0
   - Ansible
 - Make sure, that DNS-Entry on PI-DNSMASQ for these clusters are set. Use nslookup
-  - *.apps.ipi.home.local  10.0.249.241
-  - api.ipi.home.local 10.0.249.242
-  - api-int.ipi.home.local 10.0.249.242
-  
-  - *.apps.patrick.home.local  10.0.249.245
-  - api.patrick.home.local 10.0.249.246
-  - api-int.patrick.home.local 10.0.249.246
-  
+  - *.apps.ipi.home.local  172.16.249.241
+  - api.ipi.home.local 172.16.249.242
+  - api-int.ipi.home.local 172.16.249.242
+
+  - *.apps.patrick.home.local  172.16.249.245
+  - api.patrick.home.local 172.16.249.246
+  - api-int.patrick.home.local 172.16.249.246
+
 
 ```bash
 # Ansible --version
@@ -40,12 +40,17 @@ This create a folder-structure and prepares the install-config.yaml. After this 
 MYPATH=$PWD
 mkdir -p $MYPATH/git && cd $MYPATH/git && git clone https://github.com/Patthecat249/openshift-ipi-at-home.git
 ```
+## Create a password-file for your ansible-vault password
+This file contains your ansible-vault password to run the ansible-playbook without asking for vault-password
+```bash
+echo "Test1234" > $MYPATH/password.txt
+```
 
 ## Create a ansible-vault with your vcenter-credentials
 This file is needed to connect to your vcenter. Remember your password. You will paste it in a file in a few steps.
 ```bash
 # Create a vcenter credentials file
-ansible-vault create $MYPATH/git/openshift-ipi-at-home/oneclick-ocp/vars/vcenter_credentials.yaml
+ansible-vault create $MYPATH/git/openshift-ipi-at-home/oneclick-ocp/vars/vcenter_credentials.yaml --vault-password-file $MYPATH/password.txt
 vcenter_username: "<vcenter-username>"
 vcenter_password: "<vcenter-password>"
 ```
@@ -54,15 +59,11 @@ vcenter_password: "<vcenter-password>"
 This file contains your Red Hat pull-secret. Please Download from and paste it into the file:
 <https://console.redhat.com/openshift/downloads>
 ```bash
-ansible-vault create $MYPATH/git/openshift-ipi-at-home/oneclick-ocp/vars/pull-secret
+ansible-vault create $MYPATH/git/openshift-ipi-at-home/oneclick-ocp/vars/pull-secret --vault-password-file $MYPATH/password.txt
 # Paste your Red Hat pull-secret here
 ```
 
-## Create a password-file for your ansible-vault password
-This file contains your ansible-vault password to run the ansible-playbook without asking for vault-password
-```bash
-echo "Test1234" > $MYPATH/password.txt
-```
+
 
 ## Run this playbook to create your install-config.yaml for your OpenShift-Installation
 You can choose one of the parameters to prepare your install-config file.
@@ -84,7 +85,7 @@ ansible-playbook $MYPATH/git/openshift-ipi-at-home/01-playbook.yaml --vault-pass
 
 ### Customize Clustername, OpenShift-Version and Worker-Node Sizing and API+Inress-VIP
 ```bash
-ansible-playbook $MYPATH/git/openshift-ipi-at-home/01-playbook.yaml --vault-password-file $MYPATH/password.txt -e "openshift_clustername=patrick" -e "openshift_version=4.16.20" -e "worker_node_count=4" -e "worker_cpu=8" -e "worker_memory=16384" -e "worker_disksize=200" -e "openshift_api_vip=10.0.249.245" -e "openshift_ingress_vip=10.0.249.246"
+ansible-playbook $MYPATH/git/openshift-ipi-at-home/01-playbook.yaml --vault-password-file $MYPATH/password.txt -e "openshift_clustername=patrick" -e "openshift_version=4.16.20" -e "worker_node_count=4" -e "worker_cpu=8" -e "worker_memory=16384" -e "worker_disksize=200" -e "openshift_api_vip=172.16.249.245" -e "openshift_ingress_vip=172.16.249.246"
 ```
 
 # Install OpenShift

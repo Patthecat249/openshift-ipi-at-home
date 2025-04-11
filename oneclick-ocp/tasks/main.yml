@@ -133,3 +133,8 @@
     mode: '0600'
 
 # Create OpenShift-Cluster
+- name: "Create the OpenShift-Cluster"
+  debug:
+    msg:
+      - "Führe den folgenden Befehl aus, um OpenShift zu installieren:"
+      - "openshift-install create cluster --dir {{ dir_ocp_installations }}{{ openshift_clustername }}/"
