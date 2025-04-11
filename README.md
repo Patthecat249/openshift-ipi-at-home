@@ -39,7 +39,7 @@ dnf install -y podman
 
 # Build the container
 export OPENSHIFT_VERSION=4.16.24
-podman build -t ipi-installer:${OPENSHIFT_VERSION} -f $MYPATH/git/openshift-ipi-at-home/containerfile/containerfile --build-arg OPENSHIFT_VERSION=${OPENSHIFT_VERSION}
+podman build -t localhost/ipi-installer:${OPENSHIFT_VERSION} -f $MYPATH/git/openshift-ipi-at-home/containerfile/containerfile --build-arg OPENSHIFT_VERSION=${OPENSHIFT_VERSION}
 ```
 
 ### Run the Container and execute the Ansible-Playbook
