@@ -66,57 +66,57 @@
   ansible.builtin.command: update-ca-trust
   changed_when: false
 
-# Check if the OpenShift client file already exists
-- name: Prüfe, ob der OpenShift oc-Client schon vorhanden ist
-  ansible.builtin.stat:
-    path: "{{ dir_downloads }}/openshift-client-{{ openshift_version }}-linux.tar.gz"
-  register: oc_client_file
+# # Check if the OpenShift client file already exists
+# - name: Prüfe, ob der OpenShift oc-Client schon vorhanden ist
+#   ansible.builtin.stat:
+#     path: "{{ dir_downloads }}/openshift-client-{{ openshift_version }}-linux.tar.gz"
+#   register: oc_client_file
 
-# Download Clients and extract the client if not already present
-- name: OpenShift oc-Client herunterladen
-  ansible.builtin.get_url:
-    url: "{{ oc_client_url }}"
-    dest: "{{ dir_downloads }}/openshift-client-{{ openshift_version }}-linux.tar.gz"
-    mode: '0644'
-    validate_certs: true
-  when: not oc_client_file.stat.exists
+# # Download Clients and extract the client if not already present
+# - name: OpenShift oc-Client herunterladen
+#   ansible.builtin.get_url:
+#     url: "{{ oc_client_url }}"
+#     dest: "{{ dir_downloads }}/openshift-client-{{ openshift_version }}-linux.tar.gz"
+#     mode: '0644'
+#     validate_certs: true
+#   when: not oc_client_file.stat.exists
 
 
-# Check if the OpenShift Installer file already exists
-- name: Prüfe, ob der OpenShift Installer schon vorhanden ist
-  ansible.builtin.stat:
-    path: "{{ dir_downloads }}/openshift-install-{{ openshift_version }}-linux.tar.gz"
-  register: installer_file
+# # Check if the OpenShift Installer file already exists
+# - name: Prüfe, ob der OpenShift Installer schon vorhanden ist
+#   ansible.builtin.stat:
+#     path: "{{ dir_downloads }}/openshift-install-{{ openshift_version }}-linux.tar.gz"
+#   register: installer_file
 
-# Download OpenShift Installer if not already present
-- name: OpenShift Installer herunterladen
-  ansible.builtin.get_url:
-    url: "{{ installer_url }}"
-    dest: "{{ dir_downloads }}/openshift-install-{{ openshift_version }}-linux.tar.gz"
-    mode: '0644'
-    validate_certs: true
-  when: not installer_file.stat.exists
+# # Download OpenShift Installer if not already present
+# - name: OpenShift Installer herunterladen
+#   ansible.builtin.get_url:
+#     url: "{{ installer_url }}"
+#     dest: "{{ dir_downloads }}/openshift-install-{{ openshift_version }}-linux.tar.gz"
+#     mode: '0644'
+#     validate_certs: true
+#   when: not installer_file.stat.exists
 
-- name: Entpacke den OpenShift oc-Client
-  ansible.builtin.unarchive:
-    src: "{{ dir_downloads }}/openshift-client-{{ openshift_version }}-linux.tar.gz"
-    dest: "/usr/local/bin/"
-    remote_src: true
+# - name: Entpacke den OpenShift oc-Client
+#   ansible.builtin.unarchive:
+#     src: "{{ dir_downloads }}/openshift-client-{{ openshift_version }}-linux.tar.gz"
+#     dest: "/usr/local/bin/"
+#     remote_src: true
 
-- name: Entpacke den OpenShift Installer
-  ansible.builtin.unarchive:
-    src: "{{ dir_downloads }}/openshift-install-{{ openshift_version }}-linux.tar.gz"
-    dest: "/usr/local/bin/"
-    remote_src: true
+# - name: Entpacke den OpenShift Installer
+#   ansible.builtin.unarchive:
+#     src: "{{ dir_downloads }}/openshift-install-{{ openshift_version }}-linux.tar.gz"
+#     dest: "/usr/local/bin/"
+#     remote_src: true
 
-- name: Setze Berechtigungen auf ausführbar für oc und openshift-install
-  ansible.builtin.file:
-    path: "/usr/local/bin/{{ item }}"
-    mode: '0755'
-  loop:
-    - "oc"
-    - "kubectl"
-    - "openshift-install"
+# - name: Setze Berechtigungen auf ausführbar für oc und openshift-install
+#   ansible.builtin.file:
+#     path: "/usr/local/bin/{{ item }}"
+#     mode: '0755'
+#   loop:
+#     - "oc"
+#     - "kubectl"
+#     - "openshift-install"
 
 # Template install-config.yaml
 - name: "Generiere install-config.yaml aus Template"
