@@ -53,8 +53,8 @@ RUN pip3 install pyvmomi requests ansible
 RUN ansible-galaxy collection install community.vmware
 
 # Clone Git Repository
-# RUN git clone --branch main --single-branch https://github.com/Patthecat249/openshift-ipi-at-home.git ${DIR_GIT}
-RUN cd /root/ocp/git/ && git clone https://github.com/Patthecat249/openshift-ipi-at-home.git
+RUN cd /root/ocp/git/ && git clone --branch container --single-branch https://github.com/Patthecat249/openshift-ipi-at-home.git ${DIR_GIT}
+# RUN cd /root/ocp/git/ && git clone https://github.com/Patthecat249/openshift-ipi-at-home.git
 
 ### DOWNLOAD the Client-Software
 # Download the OpenShift installer

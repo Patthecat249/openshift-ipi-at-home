@@ -45,7 +45,7 @@ podman build -t localhost/ipi-installer:${OPENSHIFT_VERSION} -f $MYPATH/git/open
 ### Run the Container and execute the Ansible-Playbook
 
 ```bash
-# Build the container
+# Run the container
 export OPENSHIFT_VERSION=4.16.24
 podman run --rm -it -v $MYPATH/ocp:/root/ocp/pod-to-host-mount localhost/ipi-installer:${OPENSHIFT_VERSION} bash
 ```
@@ -83,7 +83,6 @@ You can choose one of the parameters to prepare your install-config file.
 
 ### EXAMPLE: Install with Defaults from vars/main.yaml
 ```bash
-# ansible-playbook 01-playbook.yaml --ask-vault-pass
 ansible-playbook /root/ocp/git/openshift-ipi-at-home/01-playbook.yaml --vault-password-file /root/ocp/pod-to-host-mount/password.txt
 ```
 ### EXAMPLE: Customize Clustername
