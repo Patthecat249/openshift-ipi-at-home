@@ -1,0 +1,104 @@
+# Basisimage Red Hat Universal Base Image 9 latest
+FROM fedora:latest
+
+# Author and Information
+LABEL maintainer="Patrick Jahn"
+LABEL description="Container mit den für IPI-Installation erforderlichen Paketen"
+
+# Set environment variables
+ENV DIR_ROOT=/root/ocp/
+ENV DIR_HOSTMOUNT=/root/ocp/pod-to-host-mount/
+ENV DIR_GIT=/root/ocp/git/
+ENV DIR_DOWNLOADS=/root/ocp/downloads/
+ENV DIR_CREDENTIALS=/root/ocp/credentials/
+
+# OpenShift-Version kann auch über --build-args "OPENSHIFT_VERSION=4.16.19" beim Build verändert werden
+ARG OPENSHIFT_VERSION=4.16.24
+
+# OPENSHIFT-MIRROR-URLS for oc-client and openshift-install-client
+# https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.16.19/openshift-client-linux-4.16.19.tar.gz
+ENV OPENSHIFT_INSTALLER_URL=https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/${OPENSHIFT_VERSION}/openshift-install-linux-${OPENSHIFT_VERSION}.tar.gz \
+    OPENSHIFT_CLIENT_URL=https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/${OPENSHIFT_VERSION}/openshift-client-linux-${OPENSHIFT_VERSION}.tar.gz
+
+# Set environment variables for GOVC
+ENV GOVC_DOWNLOAD_LINK=https://github.com/vmware/govmomi/releases/download/v0.47.1/govc_Linux_x86_64.tar.gz
+
+# NMSTATE Download Link
+ENV NMSTATE_DOWNLOAD_LINK=https://github.com/nmstate/nmstate/releases/download/v2.2.39/nmstatectl-linux-x64.zip
+
+# Create directories for downloads, git repo, hostmount and credentials
+RUN mkdir -p ${DIR_DOWNLOADS} ${DIR_GIT} ${DIR_HOSTMOUNT} ${DIR_CREDENTIALS}
+
+# System aktualisieren und erforderliche Pakete installieren
+RUN dnf -y update && \
+    dnf -y install \
+        tar \
+        git \
+        wget \
+        jq \
+        podman \
+        python3 \
+        python3-pip \
+        unzip \
+        bind-utils \
+        iproute \
+        iputils \
+        coreos-installer \
+        butane \
+        && \
+    dnf clean all
+
+# Install pyvmomi for access to vcenter with govc and ansible-collection to use ansible-vmware-modules
+RUN pip3 install pyvmomi requests ansible
+RUN ansible-galaxy collection install community.vmware
+
+# Clone Git Repository
+# RUN git clone --branch main --single-branch https://github.com/Patthecat249/openshift-ipi-at-home.git ${DIR_GIT}
+RUN cd /root/ocp/git/ && git clone https://github.com/Patthecat249/openshift-ipi-at-home.git
+
+### DOWNLOAD the Client-Software
+# Download the OpenShift installer
+RUN wget -q ${OPENSHIFT_INSTALLER_URL} -O ${DIR_DOWNLOADS}/openshift-install-${OPENSHIFT_VERSION}.tar.gz
+
+# Download the OpenShift client
+RUN wget -q ${OPENSHIFT_CLIENT_URL} -O ${DIR_DOWNLOADS}/openshift-client-${OPENSHIFT_VERSION}.tar.gz
+
+# Download the GOVC tar.gz file
+RUN wget -q ${GOVC_DOWNLOAD_LINK} -O ${DIR_DOWNLOADS}/govc_Linux_x86_64.tar.gz
+
+# Download the NMSTATE tar.gz file
+RUN wget -q ${NMSTATE_DOWNLOAD_LINK} -O ${DIR_DOWNLOADS}nmstatectl-linux-x64.zip
+
+# Extract the OpenShift installer
+RUN tar -xvf ${DIR_DOWNLOADS}openshift-install-${OPENSHIFT_VERSION}.tar.gz -C ${DIR_DOWNLOADS} && \
+    chmod +x ${DIR_DOWNLOADS}openshift-install && \
+    mv ${DIR_DOWNLOADS}/openshift-install /usr/local/bin/openshift-install
+
+# Extract the OpenShift client
+RUN tar -xvf ${DIR_DOWNLOADS}openshift-client-${OPENSHIFT_VERSION}.tar.gz -C ${DIR_DOWNLOADS} && \
+    chmod +x ${DIR_DOWNLOADS}oc && \
+    mv ${DIR_DOWNLOADS}/oc /usr/local/bin/oc
+
+# Extract the GOVC tar.gz file
+RUN tar -xf ${DIR_DOWNLOADS}/govc_Linux_x86_64.tar.gz -C ${DIR_DOWNLOADS} && \
+    mv ${DIR_DOWNLOADS}/govc /usr/local/bin/ && \
+    chmod +x /usr/local/bin/govc
+
+# Extract nmstatectl zip
+RUN unzip ${DIR_DOWNLOADS}nmstatectl-linux-x64.zip -d ${DIR_DOWNLOADS} && ls -l ${DIR_DOWNLOADS} && \
+    mv ${DIR_DOWNLOADS}nmstatectl /usr/local/bin/ && \
+    chmod +x /usr/local/bin/nmstatectl
+
+# Verify the oc-client and openshfit-install-client
+RUN /usr/local/bin/openshift-install version && \
+    /usr/local/bin/oc version && \
+    govc version && \
+    nmstatectl --version
+
+RUN rm -rf /root/ocp/downloads/ && dnf clean all
+
+# Arbeitsverzeichnis festlegen
+WORKDIR /root/ocp
+
+# Standardbefehl
+CMD ["/bin/bash"]
