@@ -8,8 +8,8 @@ openshift_base_domain: "home.local"
 openshift_clustername: "ipi"
 openshift_version: "4.16.17"
 coreos_version: "4.16.3"
-openshift_api_vip: "10.0.249.242"
-openshift_ingress_vip: "10.0.249.241"
+openshift_api_vip: "172.16.249.242"
+openshift_ingress_vip: "172.16.249.241"
 
 # Master-Nodes
 master_cpu: "8"
